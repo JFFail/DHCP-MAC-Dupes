@@ -1,6 +1,6 @@
 #PowerShell script to check for duplicate MACs in a DHCP database.
 #Get the servers first.
-$serverList = "first","second"
+$serverList = "first.server","second.server"
 
 #Make sure they are valid and accessible.
 foreach($server in $serverList) {
@@ -32,24 +32,36 @@ foreach($server in $serverList) {
 	}
 }
 
+#Create an array to house the used values so we don't check duplicates multiple times.
+$usedLeases = @()
+
 #Loop through each element, and compare it to the others to find duplicates.
 foreach($lease in $leaseArray) {
-	#Start counting the duplicate values.
-	$currentCount = 0
-	#Compare the current lease to every other. Increment the counter on hits.
-	foreach($checkLease in $leaseArray) {
-		if($lease.ClientID -eq $checkLease.ClientID) {
-			$currentCount++
-			#Hits over 1 mean duplicates; every instance will have at least one.
-			if($currentCount -eq 2) {
-				Write-Output $lease
-				Write-Output $checkLease
-			} elseif ($currentCount -gt 2) {
-				Write-Output $checkLease
+	#Check this against the array. Add if not found. Skip this iteration if found.
+	if(-not $usedLeases.Contains($lease.ClientID)) {
+		$usedLeases += $lease.ClientID
+			
+		#Start counting the duplicate values.
+		$currentCount = 0
+		
+		#Compare the current lease to every other. Increment the counter on hits.
+		foreach($checkLease in $leaseArray) {
+			if($lease.ClientID -eq $checkLease.ClientID) {
+				$currentCount++
+				
+				#Hits over 1 mean duplicates; every instance will have at least one.
+				if($currentCount -eq 1) {
+					$placeholder = $checkLease
+				} elseif($currentCount -eq 2) {
+					Write-Output $placeholder
+					Write-Output $checkLease
+				} elseif ($currentCount -gt 2) {
+					Write-Output $checkLease
+				}
 			}
 		}
-	}
-	if($currentCount -gt 1) {
-		Write-Output "========================="
+		if($currentCount -gt 1) {
+			Write-Output "========================="
+		}
 	}
 }
