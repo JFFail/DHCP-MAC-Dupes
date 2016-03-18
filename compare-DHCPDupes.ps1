@@ -1,6 +1,6 @@
 #PowerShell script to check for duplicate MACs in a DHCP database.
 #Get the servers first.
-$serverList = "ed017addc1.bardstown.ketsds.net","ed017adgc1.bardstown.ketsds.net"
+$serverList = "first","second"
 
 #Make sure they are valid and accessible.
 foreach($server in $serverList) {
