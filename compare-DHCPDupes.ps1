@@ -1,28 +1,26 @@
 #PowerShell script to check for duplicate MACs in a DHCP database.
 #Get the servers first.
-$serverList = "first.server","second.server"
+Param
+(
+    [Parameter(Mandatory=$true,Position=1)]
+    [string[]]$ServerList
+)
 
 #Make sure they are valid and accessible.
-foreach($server in $serverList) {
-	$isAvailable = $false
+foreach($server in $ServerList) {
 	try {
 		$isAvailable = Test-Connection -ComputerName $server -Quiet -Count 1
 	} catch {
-		Write-Host "$server is not valid of unavailable! Quitting..." -ForegroundColor Red
-		break
+		Write-Host "$server is not valid or unavailable! Quitting..." -ForegroundColor Red
+		exit
 	}
-}
-
-#Quit the whole thing if there were failures.
-if(-not $isAvailable) {
-	exit
 }
 
 #Initialize the array that will hold every lease.
 $leaseArray = @()
 
 #If we made it this far, start to loop through the servers.
-foreach($server in $serverList) {
+foreach($server in $ServerList) {
 	#First get the scopes for that server since we can't wholesale get leases.
 	$scopeList = Get-DhcpServerv4Scope -ComputerName $server
 	
